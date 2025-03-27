@@ -273,45 +273,40 @@
             updateHangman();
         }
 
-        // 创建键盘（自动禁用首字母）
-        function createKeyboard() {
-            const keyboard = document.getElementById('keyboard');
-            keyboard.innerHTML = '';
-            for (let i = 65; i <= 90; i++) {
-                const letter = String.fromCharCode(i);
-                const button = document.createElement('button');
-                button.className = 'letter-btn';
-                button.textContent = letter;
-                button.onclick = () => checkLetter(letter);
-                
-                // 禁用已显示的首字母
-                if (letter === currentWord[0]) {
-                    button.disabled = true;
-                    button.style.background = '#95a5a6';
-                }
-                
-                keyboard.appendChild(button);
-            }
-        }
+		// 修改 createKeyboard() 函数
+		function createKeyboard() {
+			const keyboard = document.getElementById('keyboard');
+			keyboard.innerHTML = '';
+			for (let i = 65; i <= 90; i++) {
+				const letter = String.fromCharCode(i);
+				const button = document.createElement('button');
+				button.className = 'letter-btn';
+				button.textContent = letter;
+				button.onclick = () => checkLetter(letter);
+				
+				// 只禁用单词的第一个字母（不禁止其他位置的相同字母）
+				if (letter === currentWord[0] && !guessedLetters.includes(letter)) {
+					button.disabled = true;
+					button.style.background = '#95a5a6';
+				}
+				
+				keyboard.appendChild(button);
+			}
+		}
 
-        // 检查字母
-        function checkLetter(letter) {
-            const buttons = document.getElementsByClassName('letter-btn');
-            const index = letter.charCodeAt(0) - 65;
-            buttons[index].disabled = true;
-
-            if (currentWord.includes(letter)) {
-                currentWord.split('').forEach((char, i) => {
-                    if (char === letter) guessedLetters[i] = letter;
-                });
-            } else {
-                remainingGuesses--;
-                updateHangman();
-            }
-
-            updateDisplay();
-            checkGameStatus();
-        }
+        // 修改 checkLetter() 函数开头部分
+		function checkLetter(letter) {
+			const buttons = document.getElementsByClassName('letter-btn');
+			const index = letter.charCodeAt(0) - 65;
+			
+			// 允许重复点击首字母（但不会重复处理）
+			if (letter === currentWord[0] && guessedLetters[0] === currentWord[0]) {
+				return;
+			}
+			
+			buttons[index].disabled = true;
+			// ...其余逻辑保持不变...
+		}
 
         // 更新显示
         function updateDisplay() {

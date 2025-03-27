@@ -1,0 +1,6 @@
+Teacher
+Student
+Book
+Pencil
+Eraser
+Math

@@ -170,12 +170,7 @@
     <!-- 加载提示 -->
     <div id="loading">正在加载单词...</div>
 
-	<!-- 在游戏容器顶部添加分数显示 -->
-    <div id="game-container">
-        <div id="score">0/0</div>  <!-- 新增分数显示 -->
-        <div id="hangman"></div>
-    </div>
-    
+	
     <!-- 记忆阶段 -->
     <div id="start-screen">
         <h1 style="font-size:3em; color:#e74c3c; text-shadow: 2px 2px #fff;">记住这些单词！</h1>
@@ -191,8 +186,12 @@
         <div class="keyboard" id="keyboard"></div>
         <div id="status">剩余尝试次数：6</div>
         <button id="restart-btn" onclick="showAllWords()">重新挑战</button>
+        <div id="score">0/0</div>  <!-- 新增分数显示 -->
+        <div id="hangman"></div>
     </div>
 
+   
+    
     <script>
         // 游戏状态变量
         let allWords = [];

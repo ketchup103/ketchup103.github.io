@@ -284,11 +284,13 @@
 				button.textContent = letter;
 				button.onclick = () => checkLetter(letter);
 				
+				/*
 				// 只禁用单词的第一个字母（不禁止其他位置的相同字母）
 				if (letter === currentWord[0] && !guessedLetters.includes(letter)) {
 					button.disabled = true;
 					button.style.background = '#95a5a6';
 				}
+				*/
 				
 				keyboard.appendChild(button);
 			}

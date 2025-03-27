@@ -305,7 +305,18 @@
 			}
 			
 			buttons[index].disabled = true;
-			// ...其余逻辑保持不变...
+			
+			if (currentWord.includes(letter)) {
+                currentWord.split('').forEach((char, i) => {
+                    if (char === letter) guessedLetters[i] = letter;
+                });
+            } else {
+                remainingGuesses--;
+                updateHangman();
+            }
+
+            updateDisplay();
+            checkGameStatus();
 		}
 
         // 更新显示

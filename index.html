@@ -213,7 +213,7 @@
                     `错误: ${error.message}<br>将使用默认单词`;
                 
                 // 使用备用单词
-                allWords = ['apple', 'happy', 'sunny', 'smile', 'cloud', 'water'];
+                allWords = ['apple', 'happy', 'sunny', 'smile', 'cloud', 'water', 'eraser'];
                 setTimeout(() => {
                     document.getElementById('loading').style.display = 'none';
                     showAllWords();
@@ -259,47 +259,42 @@
             }, 1000);
         }
 
-        // 修改 startGame() 函数 - 只显示首字母但不禁止按键
-		function startGame() {
-			currentWord = remainingWords[Math.floor(Math.random() * remainingWords.length)].toUpperCase();
-			guessedLetters = Array(currentWord.length).fill('_');
-			guessedLetters[0] = currentWord[0]; // 显示首字母但不禁止按键
-			
-			remainingGuesses = 6;
-			document.getElementById('hint').textContent = `提示：单词以 ${currentWord[0]} 开头`;
-			
-			updateDisplay();
-			createKeyboard(); // 现在键盘不会禁用任何字母
-			updateHangman();
-		}
+        // 开始游戏阶段（显示首字母但不禁止按键）
+        function startGame() {
+            currentWord = remainingWords[Math.floor(Math.random() * remainingWords.length)].toUpperCase();
+            guessedLetters = Array(currentWord.length).fill('_');
+            guessedLetters[0] = currentWord[0]; // 仅显示首字母
+            
+            remainingGuesses = 6;
+            document.getElementById('hint').textContent = `提示：单词以 ${currentWord[0]} 开头`;
+            
+            updateDisplay();
+            createKeyboard();
+            updateHangman();
+        }
 
-		// 修改 createKeyboard() 函数 - 完全不禁止首字母
-		function createKeyboard() {
-			const keyboard = document.getElementById('keyboard');
-			keyboard.innerHTML = '';
-			for (let i = 65; i <= 90; i++) {
-				const letter = String.fromCharCode(i);
-				const button = document.createElement('button');
-				button.className = 'letter-btn';
-				button.textContent = letter;
-				button.onclick = () => checkLetter(letter);
-				keyboard.appendChild(button);
-			}
-		}
+        // 创建键盘（完全不禁止任何字母）
+        function createKeyboard() {
+            const keyboard = document.getElementById('keyboard');
+            keyboard.innerHTML = '';
+            for (let i = 65; i <= 90; i++) {
+                const letter = String.fromCharCode(i);
+                const button = document.createElement('button');
+                button.className = 'letter-btn';
+                button.textContent = letter;
+                button.onclick = () => checkLetter(letter);
+                keyboard.appendChild(button);
+            }
+        }
 
-        // 修改 checkLetter() 函数开头部分
-		function checkLetter(letter) {
-			const buttons = document.getElementsByClassName('letter-btn');
-			const index = letter.charCodeAt(0) - 65;
-			
-			// 允许重复点击首字母（但不会重复处理）
-			if (letter === currentWord[0] && guessedLetters[0] === currentWord[0]) {
-				return;
-			}
-			
-			buttons[index].disabled = true;
-			
-			if (currentWord.includes(letter)) {
+        // 检查字母
+        function checkLetter(letter) {
+            const buttons = document.getElementsByClassName('letter-btn');
+            const index = letter.charCodeAt(0) - 65;
+            buttons[index].disabled = true;
+
+            // 检查字母是否在单词中（包括所有位置）
+            if (currentWord.includes(letter)) {
                 currentWord.split('').forEach((char, i) => {
                     if (char === letter) guessedLetters[i] = letter;
                 });
@@ -310,7 +305,7 @@
 
             updateDisplay();
             checkGameStatus();
-		}
+        }
 
         // 更新显示
         function updateDisplay() {

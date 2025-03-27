@@ -14,6 +14,14 @@
             font-family: 'Comic Sans MS', cursive;
         }
 
+        /* 加载提示 */
+        #loading {
+            font-size: 2em;
+            color: white;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            margin-top: 100px;
+        }
+
         /* 记忆阶段样式 */
         #start-screen {
             position: fixed;
@@ -22,7 +30,7 @@
             width: 100%;
             height: 100%;
             background: rgba(255, 255, 255, 0.95);
-            display: flex;
+            display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -87,6 +95,13 @@
             font-weight: bold;
         }
 
+        #hint {
+            font-size: 1.2em;
+            color: #3498db;
+            margin: 10px;
+            font-weight: bold;
+        }
+
         .keyboard {
             display: grid;
             grid-template-columns: repeat(13, 1fr);
@@ -108,7 +123,7 @@
 
         .letter-btn:disabled {
             opacity: 0.5;
-            background: #ccc;
+            background: #95a5a6;
         }
 
         #status {
@@ -116,13 +131,6 @@
             color: #e74c3c;
             margin: 20px;
             text-align: center;
-        }
-
-        #hint {
-            font-size: 1.2em;
-            color: #3498db;
-            margin: 10px;
-            font-weight: bold;
         }
 
         #restart-btn {
@@ -150,6 +158,9 @@
     </style>
 </head>
 <body>
+    <!-- 加载提示 -->
+    <div id="loading">正在加载单词...</div>
+
     <!-- 记忆阶段 -->
     <div id="start-screen">
         <h1 style="font-size:3em; color:#e74c3c; text-shadow: 2px 2px #fff;">记住这些单词！</h1>
@@ -168,16 +179,47 @@
     </div>
 
     <script>
-        // 单词库和游戏状态
-        let allWords = [
-            'apple', 'happy', 'sunny', 'smile', 
-            'cloud', 'water', 'fruit', 'panda'
-        ];
+        // 游戏状态变量
+        let allWords = [];
         let remainingWords = [];
         let currentWord = '';
         let guessedLetters = [];
         let remainingGuesses = 6;
         const hangmanParts = 6;
+
+        // 加载单词文件（添加时间戳避免缓存）
+        async function loadWords() {
+            try {
+                const timestamp = new Date().getTime();
+                const response = await fetch(`words.txt?t=${timestamp}`);
+                
+                if (!response.ok) throw new Error('单词文件加载失败');
+                
+                const text = await response.text();
+                allWords = text.split('\n')
+                    .map(word => word.trim().toLowerCase())
+                    .filter(word => word.length > 0 && /^[a-z]+$/.test(word));
+                
+                if (allWords.length === 0) {
+                    throw new Error('单词文件是空的或格式不正确');
+                }
+                
+                console.log("成功加载单词:", allWords);
+                document.getElementById('loading').style.display = 'none';
+                showAllWords();
+            } catch (error) {
+                console.error("加载错误:", error);
+                document.getElementById('loading').innerHTML = 
+                    `错误: ${error.message}<br>将使用默认单词`;
+                
+                // 使用备用单词
+                allWords = ['apple', 'happy', 'sunny', 'smile', 'cloud', 'water'];
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none';
+                    showAllWords();
+                }, 2000);
+            }
+        }
 
         // 初始化记忆阶段
         function showAllWords() {
@@ -217,18 +259,13 @@
             }, 1000);
         }
 
-        // 开始游戏阶段
+        // 开始游戏阶段（显示首字母）
         function startGame() {
-            // 随机选择剩余单词中的一个
             currentWord = remainingWords[Math.floor(Math.random() * remainingWords.length)].toUpperCase();
-            
-            // 初始化猜测状态（显示首字母，其他为_）
             guessedLetters = Array(currentWord.length).fill('_');
-            guessedLetters[0] = currentWord[0]; // 显示第一个字母
+            guessedLetters[0] = currentWord[0]; // 显示首字母
             
             remainingGuesses = 6;
-            
-            // 显示提示
             document.getElementById('hint').textContent = `提示：单词以 ${currentWord[0]} 开头`;
             
             updateDisplay();
@@ -236,7 +273,7 @@
             updateHangman();
         }
 
-        // 创建键盘
+        // 创建键盘（自动禁用首字母）
         function createKeyboard() {
             const keyboard = document.getElementById('keyboard');
             keyboard.innerHTML = '';
@@ -247,7 +284,7 @@
                 button.textContent = letter;
                 button.onclick = () => checkLetter(letter);
                 
-                // 禁用已显示的字母（首字母）
+                // 禁用已显示的首字母
                 if (letter === currentWord[0]) {
                     button.disabled = true;
                     button.style.background = '#95a5a6';
@@ -286,12 +323,12 @@
         function updateHangman() {
             const hangman = document.getElementById('hangman');
             const parts = [
-                '<circle cx="50" cy="80" r="15" fill="%23FFB6C1"/>', // 身体
-                '<circle cx="35" cy="65" r="5" fill="%23FFB6C1"/>',  // 左耳
-                '<circle cx="65" cy="65" r="5" fill="%23FFB6C1"/>', // 右耳
-                '<circle cx="50" cy="75" r="3" fill="%23000"/>',     // 鼻子
-                '<path d="M45 80 Q50 85 55 80" fill="none" stroke="%23000"/>', // 嘴巴
-                '<rect x="40" y="85" width="20" height="5" fill="%23FFD700"/>' // 胡萝卜
+                '<circle cx="50" cy="80" r="15" fill="%23FFB6C1"/>',
+                '<circle cx="35" cy="65" r="5" fill="%23FFB6C1"/>',
+                '<circle cx="65" cy="65" r="5" fill="%23FFB6C1"/>',
+                '<circle cx="50" cy="75" r="3" fill="%23000"/>',
+                '<path d="M45 80 Q50 85 55 80" fill="none" stroke="%23000"/>',
+                '<rect x="40" y="85" width="20" height="5" fill="%23FFD700"/>'
             ];
             
             hangman.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">${
@@ -302,7 +339,6 @@
         // 检查游戏状态
         function checkGameStatus() {
             if (guessedLetters.join('') === currentWord) {
-                // 从剩余单词中移除当前单词
                 remainingWords = remainingWords.filter(word => word.toUpperCase() !== currentWord);
                 
                 if(remainingWords.length === 0) {
@@ -313,19 +349,19 @@
                 } else {
                     setTimeout(() => {
                         alert('🎉 答对了！进入下一题！');
-                        startGame(); // 直接开始下一题
+                        startGame();
                     }, 300);
                 }
             } else if (remainingGuesses === 0) {
                 setTimeout(() => {
                     alert(`💡 正确答案是：${currentWord}\n请重新记忆单词！`);
-                    showAllWords(); // 答错返回记忆阶段
+                    showAllWords();
                 }, 300);
             }
         }
 
-        // 开始游戏
-        showAllWords();
+        // 页面加载时开始加载单词
+        window.onload = loadWords;
     </script>
 </body>
 </html>

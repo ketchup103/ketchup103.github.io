@@ -66,6 +66,7 @@
             border-radius: 20px;
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
             margin-top: 30px;
+            text-align: center;
         }
 
         #hangman {
@@ -105,11 +106,23 @@
             font-weight: bold;
         }
 
+        .letter-btn:disabled {
+            opacity: 0.5;
+            background: #ccc;
+        }
+
         #status {
             font-size: 1.5em;
             color: #e74c3c;
             margin: 20px;
             text-align: center;
+        }
+
+        #hint {
+            font-size: 1.2em;
+            color: #3498db;
+            margin: 10px;
+            font-weight: bold;
         }
 
         #restart-btn {
@@ -122,13 +135,6 @@
             cursor: pointer;
             margin: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        /* 加载提示 */
-        #loading {
-            font-size: 2em;
-            color: white;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
 
         /* 动画效果 */
@@ -144,93 +150,34 @@
     </style>
 </head>
 <body>
-    <!-- 加载提示 -->
-    <div id="loading">正在加载单词...</div>
-
     <!-- 记忆阶段 -->
-    <div id="start-screen" style="display:none;">
+    <div id="start-screen">
         <h1 style="font-size:3em; color:#e74c3c; text-shadow: 2px 2px #fff;">记住这些单词！</h1>
         <div id="word-list"></div>
         <div id="countdown">10</div>
     </div>
-    
-	<div id="image-popup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; text-align:center">
-	  <div style="background:white; max-width:80%; margin:50px auto; padding:20px; border-radius:10px">
-		<img id="popup-image" style="max-height:70vh; max-width:100%">
-		<button onclick="document.getElementById('image-popup').style.display='none'" 
-				style="margin-top:20px; padding:10px 20px">关闭</button>
-	  </div>
-	</div>
-	
+
     <!-- 游戏阶段 -->
     <div id="game-container">
         <div id="hangman"></div>
         <div id="word-display"></div>
+        <div id="hint"></div>
         <div class="keyboard" id="keyboard"></div>
         <div id="status">剩余尝试次数：6</div>
         <button id="restart-btn" onclick="showAllWords()">重新挑战</button>
     </div>
 
     <script>
-        // 游戏状态变量
-        let allWords = [];
+        // 单词库和游戏状态
+        let allWords = [
+            'apple', 'happy', 'sunny', 'smile', 
+            'cloud', 'water', 'fruit', 'panda'
+        ];
         let remainingWords = [];
         let currentWord = '';
         let guessedLetters = [];
         let remainingGuesses = 6;
         const hangmanParts = 6;
-        
-		async function fetchWordImage(word) {
-		  try {
-			// 使用Pixabay API（需注册免费Key）
-			const response = await fetch(
-			  `https://pixabay.com/api/?key=49555131-4fd5151969224dcb071a9bae5&q=${encodeURIComponent(word)}&image_type=photo`
-			);
-			const data = await response.json();
-			return data.hits[0]?.webformatURL; // 返回第一张图片
-						
-			/*
-			// 或使用Unsplash Source（无需Key但需注明来源）
-			return `https://source.unsplash.com/300x300/?${encodeURIComponent(word)}`;
-			*/
-			
-		  } catch (error) {
-			console.error("图片加载失败:", error);
-			return null;
-		  }
-		}
-		
-        // 加载单词文件
-        async function loadWords() {
-            try {
-                const response = await fetch('words.txt');
-                if (!response.ok) throw new Error('单词文件加载失败');
-                
-                const text = await response.text();
-                allWords = text.split('\n')
-                    .map(word => word.trim())
-                    .filter(word => word.length > 0);
-                
-                if (allWords.length === 0) {
-                    throw new Error('单词文件是空的');
-                }
-                
-                document.getElementById('loading').style.display = 'none';
-                document.querySelector('#start-screen h1').textContent = `记住这 ${remainingWords.length} 个单词！`;
-                showAllWords();
-            } catch (error) {
-                document.getElementById('loading').textContent = 
-                    `错误: ${error.message}，将使用默认单词`;
-                console.error(error);
-                
-                // 使用备用单词
-                allWords = ['apple', 'happy', 'sunny', 'smile', 'cloud', 'water'];
-                setTimeout(() => {
-                    document.getElementById('loading').style.display = 'none';
-                    showAllWords();
-                }, 2000);
-            }
-        }
 
         // 初始化记忆阶段
         function showAllWords() {
@@ -274,8 +221,15 @@
         function startGame() {
             // 随机选择剩余单词中的一个
             currentWord = remainingWords[Math.floor(Math.random() * remainingWords.length)].toUpperCase();
+            
+            // 初始化猜测状态（显示首字母，其他为_）
             guessedLetters = Array(currentWord.length).fill('_');
+            guessedLetters[0] = currentWord[0]; // 显示第一个字母
+            
             remainingGuesses = 6;
+            
+            // 显示提示
+            document.getElementById('hint').textContent = `提示：单词以 ${currentWord[0]} 开头`;
             
             updateDisplay();
             createKeyboard();
@@ -292,6 +246,13 @@
                 button.className = 'letter-btn';
                 button.textContent = letter;
                 button.onclick = () => checkLetter(letter);
+                
+                // 禁用已显示的字母（首字母）
+                if (letter === currentWord[0]) {
+                    button.disabled = true;
+                    button.style.background = '#95a5a6';
+                }
+                
                 keyboard.appendChild(button);
             }
         }
@@ -338,43 +299,9 @@
             }</svg>')`;
         }
 
-
-		// 修改游戏逻辑
-		async function checkGameStatus() {
-		  if (guessedLetters.join('') === currentWord) {
-			const imageUrl = await fetchWordImage(currentWord.toLowerCase());
-			if (imageUrl) {
-			  document.getElementById('popup-image').src = imageUrl;
-			  document.getElementById('image-popup').style.display = 'block';
-			}
-			
-			// 原有逻辑...
-			remainingWords = remainingWords.filter(w => w.toUpperCase() !== currentWord);
-			if (remainingWords.length === 0) {
-			  alert('🎉 恭喜通关！');
-			} else {
-			  setTimeout(() => {
-				startGame(); // 进入下一题
-				document.getElementById('image-popup').style.display = 'none';
-			  }, 2000);
-			}
-		  }
-		}
-
-/*
-
-
-
         // 检查游戏状态
-        async function checkGameStatus() {
+        function checkGameStatus() {
             if (guessedLetters.join('') === currentWord) {
-                
-                const imageUrl = await fetchWordImage(currentWord.toLowerCase());
-				if (imageUrl) {
-				  document.getElementById('popup-image').src = imageUrl;
-				  document.getElementById('image-popup').style.display = 'block';
-				}
-                
                 // 从剩余单词中移除当前单词
                 remainingWords = remainingWords.filter(word => word.toUpperCase() !== currentWord);
                 
@@ -387,7 +314,6 @@
                     setTimeout(() => {
                         alert('🎉 答对了！进入下一题！');
                         startGame(); // 直接开始下一题
-                        document.getElementById('image-popup').style.display = 'none';
                     }, 300);
                 }
             } else if (remainingGuesses === 0) {
@@ -397,9 +323,9 @@
                 }, 300);
             }
         }
-*/
-        // 页面加载时开始加载单词
-        window.onload = loadWords;
+
+        // 开始游戏
+        showAllWords();
     </script>
 </body>
 </html>

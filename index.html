@@ -259,21 +259,21 @@
             }, 1000);
         }
 
-        // 开始游戏阶段（显示首字母）
-        function startGame() {
-            currentWord = remainingWords[Math.floor(Math.random() * remainingWords.length)].toUpperCase();
-            guessedLetters = Array(currentWord.length).fill('_');
-            guessedLetters[0] = currentWord[0]; // 显示首字母
-            
-            remainingGuesses = 6;
-            document.getElementById('hint').textContent = `提示：单词以 ${currentWord[0]} 开头`;
-            
-            updateDisplay();
-            createKeyboard();
-            updateHangman();
-        }
+        // 修改 startGame() 函数 - 只显示首字母但不禁止按键
+		function startGame() {
+			currentWord = remainingWords[Math.floor(Math.random() * remainingWords.length)].toUpperCase();
+			guessedLetters = Array(currentWord.length).fill('_');
+			guessedLetters[0] = currentWord[0]; // 显示首字母但不禁止按键
+			
+			remainingGuesses = 6;
+			document.getElementById('hint').textContent = `提示：单词以 ${currentWord[0]} 开头`;
+			
+			updateDisplay();
+			createKeyboard(); // 现在键盘不会禁用任何字母
+			updateHangman();
+		}
 
-		// 修改 createKeyboard() 函数
+		// 修改 createKeyboard() 函数 - 完全不禁止首字母
 		function createKeyboard() {
 			const keyboard = document.getElementById('keyboard');
 			keyboard.innerHTML = '';
@@ -283,15 +283,6 @@
 				button.className = 'letter-btn';
 				button.textContent = letter;
 				button.onclick = () => checkLetter(letter);
-				
-				/*
-				// 只禁用单词的第一个字母（不禁止其他位置的相同字母）
-				if (letter === currentWord[0] && !guessedLetters.includes(letter)) {
-					button.disabled = true;
-					button.style.background = '#95a5a6';
-				}
-				*/
-				
 				keyboard.appendChild(button);
 			}
 		}

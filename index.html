@@ -338,6 +338,33 @@
             }</svg>')`;
         }
 
+
+		// 修改游戏逻辑
+		async function checkGameStatus() {
+		  if (guessedLetters.join('') === currentWord) {
+			const imageUrl = await fetchWordImage(currentWord.toLowerCase());
+			if (imageUrl) {
+			  document.getElementById('popup-image').src = imageUrl;
+			  document.getElementById('image-popup').style.display = 'block';
+			}
+			
+			// 原有逻辑...
+			remainingWords = remainingWords.filter(w => w.toUpperCase() !== currentWord);
+			if (remainingWords.length === 0) {
+			  alert('🎉 恭喜通关！');
+			} else {
+			  setTimeout(() => {
+				startGame(); // 进入下一题
+				document.getElementById('image-popup').style.display = 'none';
+			  }, 2000);
+			}
+		  }
+		}
+
+/*
+
+
+
         // 检查游戏状态
         async function checkGameStatus() {
             if (guessedLetters.join('') === currentWord) {
@@ -370,7 +397,7 @@
                 }, 300);
             }
         }
-
+*/
         // 页面加载时开始加载单词
         window.onload = loadWords;
     </script>

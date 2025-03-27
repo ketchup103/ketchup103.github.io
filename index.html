@@ -153,7 +153,15 @@
         <div id="word-list"></div>
         <div id="countdown">10</div>
     </div>
-
+    
+	<div id="image-popup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; text-align:center">
+	  <div style="background:white; max-width:80%; margin:50px auto; padding:20px; border-radius:10px">
+		<img id="popup-image" style="max-height:70vh; max-width:100%">
+		<button onclick="document.getElementById('image-popup').style.display='none'" 
+				style="margin-top:20px; padding:10px 20px">关闭</button>
+	  </div>
+	</div>
+	
     <!-- 游戏阶段 -->
     <div id="game-container">
         <div id="hangman"></div>
@@ -172,7 +180,25 @@
         let remainingGuesses = 6;
         const hangmanParts = 6;
         
-
+		async function fetchWordImage(word) {
+		  try {
+			// 使用Pixabay API（需注册免费Key）
+			/*const response = await fetch(
+			  `https://pixabay.com/api/?key=YOUR_PIXABAY_KEY&q=${encodeURIComponent(word)}&image_type=photo`
+			);
+			const data = await response.json();
+			return data.hits[0]?.webformatURL; // 返回第一张图片
+			*/
+			
+			// 或使用Unsplash Source（无需Key但需注明来源）
+			return `https://source.unsplash.com/300x300/?${encodeURIComponent(word)}`;
+			
+		  } catch (error) {
+			console.error("图片加载失败:", error);
+			return null;
+		  }
+		}
+		
         // 加载单词文件
         async function loadWords() {
             try {
@@ -311,30 +337,27 @@
             }</svg>')`;
         }
 
-        // 检查游戏状态
-        function checkGameStatus() {
-            if (guessedLetters.join('') === currentWord) {
-                // 从剩余单词中移除当前单词
-                remainingWords = remainingWords.filter(word => word.toUpperCase() !== currentWord);
-                
-                if(remainingWords.length === 0) {
-                    setTimeout(() => {
-                        alert('🎉 恭喜你！所有单词都答对了！');
-                        showAllWords();
-                    }, 300);
-                } else {
-                    setTimeout(() => {
-                        alert('🎉 答对了！进入下一题！');
-                        startGame(); // 直接开始下一题
-                    }, 300);
-                }
-            } else if (remainingGuesses === 0) {
-                setTimeout(() => {
-                    alert(`💡 正确答案是：${currentWord}\n请重新记忆单词！`);
-                    showAllWords(); // 答错返回记忆阶段
-                }, 300);
-            }
-        }
+       // 修改游戏逻辑
+		async function checkGameStatus() {
+		  if (guessedLetters.join('') === currentWord) {
+			const imageUrl = await fetchWordImage(currentWord.toLowerCase());
+			if (imageUrl) {
+			  document.getElementById('popup-image').src = imageUrl;
+			  document.getElementById('image-popup').style.display = 'block';
+			}
+			
+			// 原有逻辑...
+			remainingWords = remainingWords.filter(w => w.toUpperCase() !== currentWord);
+			if (remainingWords.length === 0) {
+			  alert('🎉 恭喜通关！');
+			} else {
+			  setTimeout(() => {
+				startGame(); // 进入下一题
+				document.getElementById('image-popup').style.display = 'none';
+			  }, 2000);
+			}
+		  }
+		}
 
         // 页面加载时开始加载单词
         window.onload = loadWords;

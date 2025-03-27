@@ -337,27 +337,30 @@
             }</svg>')`;
         }
 
-       // 修改游戏逻辑
-		async function checkGameStatus() {
-		  if (guessedLetters.join('') === currentWord) {
-			const imageUrl = await fetchWordImage(currentWord.toLowerCase());
-			if (imageUrl) {
-			  document.getElementById('popup-image').src = imageUrl;
-			  document.getElementById('image-popup').style.display = 'block';
-			}
-			
-			// 原有逻辑...
-			remainingWords = remainingWords.filter(w => w.toUpperCase() !== currentWord);
-			if (remainingWords.length === 0) {
-			  alert('🎉 恭喜通关！');
-			} else {
-			  setTimeout(() => {
-				startGame(); // 进入下一题
-				document.getElementById('image-popup').style.display = 'none';
-			  }, 2000);
-			}
-		  }
-		}
+        // 检查游戏状态
+        function checkGameStatus() {
+            if (guessedLetters.join('') === currentWord) {
+                // 从剩余单词中移除当前单词
+                remainingWords = remainingWords.filter(word => word.toUpperCase() !== currentWord);
+                
+                if(remainingWords.length === 0) {
+                    setTimeout(() => {
+                        alert('🎉 恭喜你！所有单词都答对了！');
+                        showAllWords();
+                    }, 300);
+                } else {
+                    setTimeout(() => {
+                        alert('🎉 答对了！进入下一题！');
+                        startGame(); // 直接开始下一题
+                    }, 300);
+                }
+            } else if (remainingGuesses === 0) {
+                setTimeout(() => {
+                    alert(`💡 正确答案是：${currentWord}\n请重新记忆单词！`);
+                    showAllWords(); // 答错返回记忆阶段
+                }, 300);
+            }
+        }
 
         // 页面加载时开始加载单词
         window.onload = loadWords;

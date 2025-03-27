@@ -14,6 +14,15 @@
             font-family: 'Comic Sans MS', cursive;
         }
 
+        /* 分数显示 */
+        #score {
+            font-size: 1.8em;
+            color: #e74c3c;
+            margin: 15px 0;
+            font-weight: bold;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+
         /* 加载提示 */
         #loading {
             font-size: 2em;
@@ -161,6 +170,12 @@
     <!-- 加载提示 -->
     <div id="loading">正在加载单词...</div>
 
+	<!-- 在游戏容器顶部添加分数显示 -->
+    <div id="game-container">
+        <div id="score">0/0</div>  <!-- 新增分数显示 -->
+        <div id="hangman"></div>
+    </div>
+    
     <!-- 记忆阶段 -->
     <div id="start-screen">
         <h1 style="font-size:3em; color:#e74c3c; text-shadow: 2px 2px #fff;">记住这些单词！</h1>
@@ -186,6 +201,8 @@
         let guessedLetters = [];
         let remainingGuesses = 6;
         const hangmanParts = 6;
+        let totalWords = 0;
+        let correctCount = 0;
 
         // 加载单词文件（添加时间戳避免缓存）
         async function loadWords() {
@@ -199,6 +216,9 @@
                 allWords = text.split('\n')
                     .map(word => word.trim().toLowerCase())
                     .filter(word => word.length > 0 && /^[a-z]+$/.test(word));
+                
+                totalWords = allWords.length; // 记录总单词数
+                updateScore(); // 初始化分数显示
                 
                 if (allWords.length === 0) {
                     throw new Error('单词文件是空的或格式不正确');
@@ -218,11 +238,22 @@
                     document.getElementById('loading').style.display = 'none';
                     showAllWords();
                 }, 2000);
+                
+                totalWords = allWords.length;
+                updateScore();
             }
+        }
+        
+         // 新增分数更新函数
+        function updateScore() {
+            document.getElementById('score').textContent = 
+                `${correctCount}/${totalWords}`;
         }
 
         // 初始化记忆阶段
         function showAllWords() {
+			correctCount = 0; // 重置分数
+            updateScore();
             remainingWords = [...allWords];
             document.getElementById('start-screen').style.display = 'flex';
             document.getElementById('start-screen').style.opacity = '1';
@@ -334,6 +365,9 @@
         function checkGameStatus() {
             if (guessedLetters.join('') === currentWord) {
                 remainingWords = remainingWords.filter(word => word.toUpperCase() !== currentWord);
+                
+                correctCount++; // 答对加分
+                updateScore();
                 
                 if(remainingWords.length === 0) {
                     setTimeout(() => {
